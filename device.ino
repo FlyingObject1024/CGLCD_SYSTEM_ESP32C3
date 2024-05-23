@@ -1,18 +1,20 @@
 #include "ATM0130.h"
 
 Device::Device() {
+  pinMode(ANALOG_BUTTON_PIN, ANALOG);
   this->last_millis = 0;
 
-  this->ssid = "";
-  this->pass = "";
-  readSettings();
-
+  this->ssid[0] = String("PXL_1028");
+  this->pass[0] = String("kodaidesu");
+  this->ssid[1] = String("xg100n-3f3275-1");
+  this->pass[1] = String("117fd2a99b576");
+  //readSettings();
 
   this->isServerStarted = false;
   
   this->isTimeConfigured = false;
   this->isWiFiConnected = false;
-  this->tryWiFiConnect = true;
+  this->tryWiFiConnect = false;
 
   this->button_state    = 0b00000000;
   this->button_pressed  = 0b00000000;
@@ -122,26 +124,43 @@ String Device::getServerpass(){
 
 void Device::WiFiBegin() {
   /*
-  WiFi.begin(this->ssid, this->pass);
-  this->tryWiFiConnect = true;
-  this->timeOut_time = 0;
+  int len = (this->ssid[0].length()+1);
+  char ssid0[len];
+  this->ssid[0].toCharArray(ssid0, len);
+  len = (this->pass[0].length()+1);
+  char pass0[len];
+  this->pass[0].toCharArray(pass0, len);
   */
+  WiFi.begin(this->ssid[0], this->pass[0]);
+  
+  this->tryWiFiConnect = true;
+  this->timeOut_time = millis();
 }
 
 void Device::WiFiConnectCheck(){
-  /*
-  Serial.println("SSID: " + this->ssid);
-  //Serial.println("PASS: " + this->pass);
-  if (WiFi.status() == WL_CONNECTED){
-    this->isWiFiConnected = true;
-    setTime();
-    this->tryWiFiConnect = false;
+  if(this->wait_time + 500 <= millis()){
+    if (WiFi.status() != WL_CONNECTED){
+      Serial.print("Connecting to ");
+      Serial.println(this->ssid[0]);
+      if(this->timeOut_time + 15000 <= millis()){
+        Serial.println("TIMEOUT");
+        WiFi.disconnect();
+        WiFi.reconnect();
+        Serial.print("Reconnect to");
+        Serial.println(this->ssid[0]);
+        this->timeOut_time = millis();
+      }
+    }    
+    else{
+      this->isWiFiConnected = true;
+      this->tryWiFiConnect = false;
+      setTime();
+      WiFi.disconnect();
+      Serial.print("CONNECTED.\nSSID=");
+      Serial.println(WiFi.SSID());
+    }
+    this->wait_time = millis();
   }
-  else{
-    this->isWiFiConnected = false;
-  }
-  this->timeOut_time++;
-  */
 }
 
 void Device::WiFiEnd(){
@@ -155,10 +174,9 @@ void Device::WiFiEnd(){
 }
 
 void Device::setTime(){
-  /*
   if (this->isWiFiConnected){
     configTime(JST, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
-  }*/
+  }
 }
 
 void Device::getTime(){
@@ -183,6 +201,9 @@ uint8_t Device::getMinute(){
 }
 
 uint8_t Device::getSecond(){
+  Serial.printf("%04d/%02d/%02d %02d:%02d:%02d\n",
+        tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday,
+        tm->tm_hour, tm->tm_min, tm->tm_sec);
   return tm->tm_sec;
 }
 

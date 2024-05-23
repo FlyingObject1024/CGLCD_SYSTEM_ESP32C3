@@ -15,6 +15,8 @@
 //deep sleep関連クロックの保持->　https://www.robmiles.com/journal/2020/1/22/esp32-retaining-timing-over-deep-sleep
 //NULLの値は0になるため、配列の終止として使用してはならない。
 //2024/05/16 マジックナンバーが多すぎる SPI通信の指定がわからない
+//2024/05/23 フラグを自分で安易に書き変えない事。除外したいならコメントアウトにすること。(try_wificonnect = trueになってた)
+
 
 #include "ATM0130.h"
 
@@ -45,57 +47,45 @@ void frame_checker() {
     if (device.isTimeConfigured) device.timeLog();
     else device.readTimeLog();
     */
-    /*
-    int v = ESP.getVcc();
-    Serial.println("VCC=" + String(v / 1000.0) + "V");
-    */
   }
   buttonChecker();
   //animationChecker();
+  if (device.tryWiFiConnect) {
+    device.WiFiConnectCheck();
+    if (device.isTimeConfigured) device.WiFiEnd();
+  }
+  else if(device.isTimeConfigured==false){
+    device.WiFiBegin();    
+  }
 }
 
 void buttonChecker() {
-  uint8_t button_reader = 0b000;
-  /*
-  if (digitalRead(BUTTON_A_PIN) == LOW) {
+  uint8_t button_reader = 0b00000000;
+  uint16_t analog_signal = analogRead(ANALOG_BUTTON_PIN);
+  
+  if     (analog_signal < 2500){
     button_reader |= (1 << BUTTON_A);
-  }
-  if (digitalRead(BUTTON_B_PIN) == LOW) {
     button_reader |= (1 << BUTTON_B);
-  }*/
+  }
+  else if(analog_signal < 3000){
+    button_reader |= (1 << BUTTON_A);    
+  }
+  else if(analog_signal < 4000){
+    button_reader |= (1 << BUTTON_B);
+  }
+  
+  Serial.print("ANALOG BUTTON: ");
+  Serial.println(analog_signal);
   device.setButtonState(button_reader);
 }
 
-// 割り込み処理
-/*
-void IRAM_ATTR button_pushed() {
-  if (!button_press_flag) {
-    button_press_flag = true;
-  }
-}*/
-
-
 void setup() {
-  /*
-  pinMode(LED_PIN, OUTPUT);
-  pinMode(BUTTON_A_PIN, INPUT_PULLUP);
-  pinMode(BUTTON_B_PIN, INPUT_PULLUP);
-  */
-
-  // 割り込みを登録 LOWをトリガーとする
-  //attachInterrupt(BUTTON_A_PIN, button_pushed, FALLING);
-  //attachInterrupt(BUTTON_B_PIN, button_pushed, FALLING);
-
   Serial.begin(115200);
   Serial.println("\nSYSTEM START");
-
-  //digitalWrite(LED_PIN, HIGH);
 
   myATM0130.begin();
   myATM0130.clearScreen(BLACK16);
   myATM0130.updateScreen();
-
-  //device.WiFiBegin();
 
   gameobjects[0] = &background;
   gameobjects[1] = &character;
@@ -107,18 +97,8 @@ void loop() {
   while(true){
     frame_checker();
 
-    /*
-    if (device.tryWiFiConnect) {
-      Serial.println("tryWiFi");
-      device.WiFiConnectCheck();
-      if (device.isTimeConfigured) device.WiFiEnd();
-    }*/
-
-    if (false/*device.isServerStarted*/) {
-      /*
-      Serial.println("tryServer");
-      device.serverWaitAccess();
-      if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) device.serverEnd();*/
+    if (false) {
+      
     }
     else {
       //全てgameobjects内でプログラムを実行、background, character, userinterfaceが既に入っている

@@ -3,10 +3,8 @@
 
 #include <Arduino.h>
 #include <SPI.h>
+#include <WiFi.h>
 
-//#include <ESP8266WiFi.h>
-//#include <WiFiClient.h> 
-//#include <ESP8266WebServer.h>
 #include <time.h>
 
 #include <FS.h>
@@ -101,8 +99,8 @@ class ATM0130 {
 };
 
 //ピンの割り当て (D/C , /RES)
-ATM0130 myATM0130 = ATM0130(DC, RES);
+extern ATM0130 myATM0130 = ATM0130(DC, RES);
+extern Device device = Device();
 //ESP8266WebServer server(SERVERPORT);
-Device device = Device();
 
 #endif

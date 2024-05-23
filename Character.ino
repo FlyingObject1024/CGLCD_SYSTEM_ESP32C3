@@ -46,9 +46,9 @@ void Character::statusChanger() {
     this->sleepiness++;
     if (this->love >= 0
         && this->stomach >= 90 
-        && this->happiness  >= 90 
-        && this->life >= 80 
-        && this->sleepiness >= 80){
+        && this->happiness  >= 80 
+        && this->life >= 90 
+        && this->sleepiness >= 60){
           this->favorability++;
           if(this->favorability >= 90) this->favorability = 90;
     }
@@ -64,7 +64,7 @@ void Character::statusChanger() {
       if (this->stomach >= 90 && this->sleepiness >= 10) {
         this->life++;
         this->happiness++;
-        if (this->happiness  >= 90 && this->life >= 80) this->favorability++;
+        if (this->happiness  >= 70 && this->life >= 60) this->favorability++;
         if(this->favorability >= 90){
           this->favorability = 50;
           this->love++;
@@ -77,6 +77,7 @@ void Character::statusChanger() {
     }
     else {
       this->life--;
+      if(life < 5 && happiness > 0) this->life++;
       this->happiness -= 2;
     }
 

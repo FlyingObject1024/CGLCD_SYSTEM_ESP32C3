@@ -109,7 +109,7 @@ void UI::moveSetting() {
 /* UIの主処理 */
 void UI::move() {
   if (menuOpen) {
-    if     (this->UIcursor == ICON_HAND   && character.state != STATE_DIE) this->moveTouch();
+    if      (this->UIcursor == ICON_HAND   && character.state != STATE_DIE) this->moveTouch();
     else if (this->UIcursor == ICON_FOOD  && character.state != STATE_DIE) this->moveEat();
     else if (this->UIcursor == ICON_INFO   ) this->moveInfo();
     else if (this->UIcursor == ICON_SAVE   ) this->moveSave();
@@ -217,6 +217,8 @@ void UI::drawEat() {
 
 void UI::drawClock(int16_t x, int16_t y) {
   float Rad;
+  float sinRad;
+  float cosRad;
   //盤
   myATM0130.setColor(WHITE16);
   myATM0130.drawFillCircle(x, y, 13);
@@ -225,7 +227,8 @@ void UI::drawClock(int16_t x, int16_t y) {
     myATM0130.setColor(BLACK16);
   }
   else {
-    if (false/*device.isWiFiConnected*/) myATM0130.setColor(GREEN16);
+    if      (device.isWiFiConnected) myATM0130.setColor(GREEN16);
+    else if (device.tryWiFiConnect) myATM0130.setColor(YELLOW16);
     else myATM0130.setColor(RED16);
   }
   myATM0130.drawCircle(x, y, 13);
@@ -235,26 +238,32 @@ void UI::drawClock(int16_t x, int16_t y) {
   //長針
   myATM0130.setColor(BLACK16);
   Rad = (360 * ((device.getMinute() % 60) / 60.0) - 90) / (180 / PI);
-  myATM0130.drawLine(x  , y  , x + cos(Rad) * 9, y + sin(Rad) * 9);
-  myATM0130.drawLine(x - 1, y  , x + cos(Rad) * 9, y + sin(Rad) * 9);
-  myATM0130.drawLine(x + 1, y  , x + cos(Rad) * 9, y + sin(Rad) * 9);
-  myATM0130.drawLine(x  , y - 1, x + cos(Rad) * 9, y + sin(Rad) * 9);
-  myATM0130.drawLine(x  , y + 1, x + cos(Rad) * 9, y + sin(Rad) * 9);
+  sinRad = sin(Rad);
+  cosRad = cos(Rad);
+  myATM0130.drawLine(x  , y  , x + cosRad * 9, y + sinRad * 9);
+  myATM0130.drawLine(x - 1, y  , x + cosRad * 9, y + sinRad * 9);
+  myATM0130.drawLine(x + 1, y  , x + cosRad * 9, y + sinRad * 9);
+  myATM0130.drawLine(x  , y - 1, x + cosRad * 9, y + sinRad * 9);
+  myATM0130.drawLine(x  , y + 1, x + cosRad * 9, y + sinRad * 9);
 
   //短針
   myATM0130.setColor(RED16);
   //Rad = (360 * ((device.getHour() % 12) / 12.0) - 90) / (180 / PI);
   Rad = (360 * ((( (device.getHour() % 12) * 5 + device.getMinute() / 12 ) % 60) / 60.0) - 90) / (180 / PI);
-  myATM0130.drawLine(x  , y  , x + cos(Rad) * 5, y + sin(Rad) * 5);
-  myATM0130.drawLine(x - 1, y  , x + cos(Rad) * 5, y + sin(Rad) * 5);
-  myATM0130.drawLine(x + 1, y  , x + cos(Rad) * 5, y + sin(Rad) * 5);
-  myATM0130.drawLine(x  , y - 1, x + cos(Rad) * 5, y + sin(Rad) * 5);
-  myATM0130.drawLine(x  , y + 1, x + cos(Rad) * 5, y + sin(Rad) * 5);
+  sinRad = sin(Rad);
+  cosRad = cos(Rad);
+  myATM0130.drawLine(x  , y  , x + cosRad * 5, y + sinRad * 5);
+  myATM0130.drawLine(x - 1, y  , x + cosRad * 5, y + sinRad * 5);
+  myATM0130.drawLine(x + 1, y  , x + cosRad * 5, y + sinRad * 5);
+  myATM0130.drawLine(x  , y - 1, x + cosRad * 5, y + sinRad * 5);
+  myATM0130.drawLine(x  , y + 1, x + cosRad * 5, y + sinRad * 5);
 
   //秒針
   myATM0130.setColor(BLUE16);
   Rad = (360 * ((device.getSecond() % 60) / 60.0) - 90) / (180 / PI);
-  myATM0130.drawLine(x, y, x + cos(Rad) * 11, y + sin(Rad) * 11);
+  sinRad = sin(Rad);
+  cosRad = cos(Rad);
+  myATM0130.drawLine(x, y, x + cosRad * 11, y + sinRad * 11);
 
 }
 
@@ -278,14 +287,16 @@ void UI::drawInfo() {
   myATM0130.drawBlock_16px(52, 94, icon[ICON_GRAYSLEEP]);
   myATM0130.drawBlock_16px(52, 94, icon[ICON_SLEEP], (uint8_t)(16 - 16.0 * (((double)character.sleepiness) / 100.0)), 0, 0, 0);
 
-  myATM0130.drawBlock(70, 92, 32, 16, 16, 24, imagemap);//冷蔵庫
+  //冷蔵庫
+  myATM0130.drawBlock(70, 92, 32, 16, 16, 24, imagemap);
 
 
   //デバッグ用
   myATM0130.setColor(BLUE16);
   myATM0130.putStr(0,  1, String("LT:" + String(character.loopTime) + " S:" + String(character.state) + " AN:" + String(character.animationNum)));
+  myATM0130.setColor(GREEN16);
+  myATM0130.putStr(0, 9, String("HP:" + String(character.life)+ " LOVE:") + String(character.love));
   myATM0130.setColor(RED16);
-  //myATM0130.putStr(0,  9, String("VCC=" + String(ESP.getVcc() / 1000.0) + "V HP:" + String(character.life)));
   myATM0130.putStr(0, 17, String("Fav:" + String(character.favorability)+ " LOVE:") + String(character.love));
   
 }

@@ -4,10 +4,7 @@
 #define JST     3600* 9
 #define CONFIG_LWIP_SNTP_UPDATE_DELAY 3600000
 
-#define LED_PIN 2
-
-#define BUTTON_A_PIN 5
-#define BUTTON_B_PIN 4
+#define ANALOG_BUTTON_PIN A2
 
 #define BUTTON_A 0
 #define BUTTON_B 1
@@ -31,12 +28,12 @@ class Device{
     volatile uint8_t button_release;
     
     String serverssid = "";
-    String serverpass = "yakoshin";
+    String serverpass = "";
     
-    String ssid;
-    String pass;
+    String ssid[3];
+    String pass[3];
 
-    const char* settings = "/wifi_setting.txt";
+    String settings = "/wifi_setting.txt";
     
     struct tm *tm;
     
@@ -50,6 +47,7 @@ class Device{
     volatile unsigned long last_millis;
 
     unsigned long timeOut_time;
+    unsigned long wait_time;
     
     Device();
     void setButtonState(uint8_t states);
