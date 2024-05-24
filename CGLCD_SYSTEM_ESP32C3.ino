@@ -52,11 +52,14 @@ void frame_checker() {
   //animationChecker();
   if (device.tryWiFiConnect) {
     device.WiFiConnectCheck();
-    if (device.isTimeConfigured) device.WiFiEnd();
   }
-  else if(device.isTimeConfigured==false){
-    device.WiFiBegin();    
+  else if(device.tryWiFiConnect==false && device.isTimeConfigured==false){
+    device.WiFiBegin();
   }
+  else if(device.isWiFiConnected && device.isTimeConfigured==false){
+    device.setTime();
+  }
+  if (device.isTimeConfigured) device.WiFiEnd();
 }
 
 void buttonChecker() {

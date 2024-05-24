@@ -4,10 +4,10 @@ Device::Device() {
   pinMode(ANALOG_BUTTON_PIN, ANALOG);
   this->last_millis = 0;
 
-  this->ssid[0] = String("PXL_1028");
-  this->pass[0] = String("kodaidesu");
-  this->ssid[1] = String("xg100n-3f3275-1");
-  this->pass[1] = String("117fd2a99b576");
+  this->ssid[1] = String("PXL_1028");
+  this->pass[1] = String("kodaidesu");
+  this->ssid[0] = String("xg100n-3f3275-1");
+  this->pass[0] = String("117fd2a99b576");
   //readSettings();
 
   this->isServerStarted = false;
@@ -123,14 +123,6 @@ String Device::getServerpass(){
 }
 
 void Device::WiFiBegin() {
-  /*
-  int len = (this->ssid[0].length()+1);
-  char ssid0[len];
-  this->ssid[0].toCharArray(ssid0, len);
-  len = (this->pass[0].length()+1);
-  char pass0[len];
-  this->pass[0].toCharArray(pass0, len);
-  */
   WiFi.begin(this->ssid[0], this->pass[0]);
   
   this->tryWiFiConnect = true;
@@ -176,6 +168,7 @@ void Device::WiFiEnd(){
 void Device::setTime(){
   if (this->isWiFiConnected){
     configTime(JST, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
+    getTime();
   }
 }
 
@@ -189,7 +182,10 @@ void Device::getTime(){
         tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday,
         tm->tm_hour, tm->tm_min, tm->tm_sec);
 
-  if(tm->tm_year >= 122) this->isTimeConfigured = true;
+  if(tm->tm_year >= 122){
+    this->isTimeConfigured = true;
+    WiFi.disconnect();
+  }
 }
 
 uint8_t Device::getHour(){
