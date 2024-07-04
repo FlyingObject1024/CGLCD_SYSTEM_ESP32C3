@@ -6,9 +6,11 @@
 #include <WiFi.h>
 
 #include <time.h>
-
 #include <FS.h>
+#include <SPIFFS.h>
 #include <string.h>
+
+#include <math.h>
 
 #include "device.h"
 #include "image.h"
@@ -16,19 +18,23 @@
 #include "etcdata.h"
 #include "GameObject.h"
 
+#define PI 3.141592653589793
+
 #define SERVERPORT 80
 
+#define DEG(a)  ((a) * 180 / PI)        // ラジアンを度に変換するマクロ
+#define RAD(a)  ((a) * PI /180)         // 度をラジアンに変換するマクロ
+
 //SSの代わり
-#define CS 2
+#define CS 3
 
 //ピンの割り当て (D/C , /RES)
-#define DC 6
-#define RES 7
+#define DC 5
+#define RES 6
 
 #define WIDTH 120
 #define HEIGHT 120
 
-#define PI 3.141592653589793
 
 class ATM0130 {
   public:
@@ -98,9 +104,12 @@ class ATM0130 {
     //240を指定すると恐らくでかすぎてエラーが起こる。
 };
 
-//ピンの割り当て (D/C , /RES)
+//重要クラス群定義
+//ピンの割り当て (D/C, /RES)
 extern ATM0130 myATM0130 = ATM0130(DC, RES);
 extern Device device = Device();
-//ESP8266WebServer server(SERVERPORT);
+extern IPAddress LIP; //Local IP address
+WiFiServer server(SERVERPORT);
+WiFiClient client = server.available();
 
 #endif

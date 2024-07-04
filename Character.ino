@@ -39,6 +39,15 @@ void Character::eat(uint8_t foodType){
   if(this->life >= 100) this->life = 100;
 }
 
+void Character::stock(uint8_t foodType){
+  for(uint8_t i=0;i<4;i++){
+    if(this->storage[i]==FOOD_IMAGENUM){
+      this->storage[i] = foodType;
+      break;
+    }
+  }
+}
+
 void Character::statusChanger() {
   Serial.printf("\nCharacter:\nlife: %d, stomach: %d\nsleepiness: %d, favorability: %d,love: %d\nstate: %d\n\n", life, stomach, sleepiness, favorability, love, state);  
   
@@ -73,7 +82,7 @@ void Character::statusChanger() {
       }
       this->stomach--;
       this->happiness--;
-      //if(this->stomach <= 10) changeState(STATE_HUNGRY);
+      //if(this->stomach <= 10) changeState(STATE_STORAGE_EAT);
     }
     else {
       this->life--;
@@ -110,17 +119,14 @@ void Character::changeState(uint8_t state) {
   this->beforeState = this->state;
   this->state = state;
   if (this->state != this->beforeState) {
-    if      (this->state == STATE_SLEEP) animation = (uint8_t*)animations[ANIME_SLEEPING];
-    else if (this->state == STATE_SLEEPY) animation = (uint8_t*)animations[ANIME_SLEEPY];
-    else if (this->state == STATE_STROKE) animation = (uint8_t*)animations[ANIME_STROKE];
-    else if (this->state == STATE_STROKE_HAPPY) animation = (uint8_t*)animations[ANIME_STROKE_HAPPY];
-    else if (this->state == STATE_EAT) {
-      animation = (uint8_t*)animations[ANIME_EAT];
-    }
-    else if (this->state == STATE_DIE) animation = (uint8_t*)animations[ANIME_DIE];
-    else {
-      animation = (uint8_t*)animations[ANIME_NORMAL];
-    }
+    if      (this->state == STATE_SLEEP        ) animation = (uint8_t*)animations[ANIME_SLEEPING];
+    else if (this->state == STATE_SLEEPY       ) animation = (uint8_t*)animations[ANIME_SLEEPY];
+    else if (this->state == STATE_STROKE       ) animation = (uint8_t*)animations[ANIME_STROKE];
+    else if (this->state == STATE_STROKE_HAPPY ) animation = (uint8_t*)animations[ANIME_STROKE_HAPPY];
+    else if (this->state == STATE_EAT          ) animation = (uint8_t*)animations[ANIME_EAT];
+    else if (this->state == STATE_STORAGE_EAT  ) animation = (uint8_t*)animations[ANIME_STORAGE_EAT];
+    else if (this->state == STATE_DIE          ) animation = (uint8_t*)animations[ANIME_DIE];
+    else                                         animation = (uint8_t*)animations[ANIME_NORMAL];
     mouthState = MOUTH_NORMAL;
     this->animationNum = 0;
   }
@@ -130,7 +136,7 @@ void Character::moveAnimation() {
   this->bodyState = pgm_read_byte(&(*(this->animation + 2 * this->animationNum)));
   this->eyeState = pgm_read_byte(&(*(this->animation + 2 * this->animationNum + 1)));
 
-  if (this->state == STATE_EAT) {
+  if (this->state == STATE_EAT || this->state == STATE_STORAGE_EAT) {
     if (this->animationNum % 4 / 2 % 2 == 0) this->mouthState = MOUTH_OPEN;
     else this->mouthState = MOUTH_CLOSE;
   }
@@ -145,7 +151,7 @@ void Character::moveAnimation() {
       changeState(STATE_STROKE_HAPPY);
       this->happiness++;
     }
-    else if(this->state == STATE_STROKE_HAPPY || this->state == STATE_EAT) {
+    else if(this->state == STATE_STROKE_HAPPY || this->state == STATE_EAT || this->state == STATE_STORAGE_EAT) {
       changeState(STATE_NORMAL);
       this->happiness++;
     }
@@ -172,7 +178,7 @@ void Character::move() {
       if (this->x < 0) this->x = 0;
       else if (this->x >= 88) this->x = 87;
       if (this->y < 50) this->y = 50;
-      else if (this->y >= 88) this->y = 87;
+      else if (this->y >= 80) this->y = 79;
     }
   }
   moveAnimation();

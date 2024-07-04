@@ -1,16 +1,8 @@
 #include "ATM0130.h"
 
-//UIの定義はGameObjct.hの中。買える事。
+//UIの定義はGameObjct.hの中
 
 UI::UI() {
-  /*
-    moves[0] = &UI::moveTouch;
-    moves[1] = &UI::moveEat;
-    moves[2] = &UI::moveInfo;
-    moves[3] = &UI::moveSave;
-    moves[4] = &UI::movePowor;
-    moves[5] = &UI::moveSetting;*/
-
   this->x = 104;
   this->y = 104;
   this->sizex = 120;
@@ -22,10 +14,8 @@ UI::UI() {
   this->secondCursor = 0;
 }
 
-
-
 void UI::moveTouch() {
-  if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) {
+  if (device.getButtonState(BUTTON_M, BUTTON_PRESSED)) {
     if (this->secondCursor == 0) {
       if (character.state == STATE_SLEEP) this->secondCursor++;
       character.changeState(STATE_STROKE);
@@ -37,6 +27,10 @@ void UI::moveTouch() {
       this->menuOpen = !(this->menuOpen);
     }
     else if (this->secondCursor == 2) this->menuOpen = !(this->menuOpen);
+  }
+  else if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) {
+    if (character.state != STATE_STROKE || character.state != STATE_STROKE_HAPPY) this->secondCursor--;
+    if (this->secondCursor < 0) this->secondCursor=2;
   }
   else if (device.getButtonState(BUTTON_B, BUTTON_PRESSED)) {
     if (character.state != STATE_STROKE || character.state != STATE_STROKE_HAPPY) this->secondCursor++;
@@ -55,7 +49,7 @@ void UI::foodDecision() {
 
 void UI::moveEat() {
   if (character.state != STATE_EAT) {
-    if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) {
+    if (device.getButtonState(BUTTON_M, BUTTON_PRESSED)) {
       if (this->secondCursor == 0) {
         foodDecision();
         character.changeState(STATE_EAT);
@@ -63,9 +57,13 @@ void UI::moveEat() {
       }
       if (this->secondCursor == 1) {
         foodDecision();
-        //character.stock(foodType);
+        character.stock(foodType);
       }
       else if (this->secondCursor == 2) this->menuOpen = !(this->menuOpen);
+    }
+    else if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) {
+      this->secondCursor--;
+      if (this->secondCursor<0) this->secondCursor = 2;
     }
     else if (device.getButtonState(BUTTON_B, BUTTON_PRESSED)) {
       this->secondCursor++;
@@ -76,7 +74,7 @@ void UI::moveEat() {
 }
 
 void UI::moveInfo() {
-  if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) {
+  if (device.getButtonState(BUTTON_M, BUTTON_PRESSED)) {
     this->menuOpen = !(this->menuOpen);
   }
 }
@@ -88,20 +86,20 @@ void UI::moveSave() {
     &character.favorability,
     &character.hiddenFavorability
     );*/
-  if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) {
+  if (device.getButtonState(BUTTON_M, BUTTON_PRESSED)) {
     this->menuOpen = !(this->menuOpen);
   }
 }
 
 void UI::movePowor() {
-  if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) {
+  if (device.getButtonState(BUTTON_M, BUTTON_PRESSED)) {
     this->menuOpen = !(this->menuOpen);
   }
 }
 
 void UI::moveSetting() {
   this->secondCursor++;
-  if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) {
+  if (device.getButtonState(BUTTON_M, BUTTON_PRESSED)) {
     this->menuOpen = !(this->menuOpen);
   }
 }
@@ -116,13 +114,17 @@ void UI::move() {
     else if (this->UIcursor == ICON_POWER  ) this->movePowor();
     else if (this->UIcursor == ICON_SETTING) this->moveSetting();
     else {
-      if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) this->menuOpen = !(this->menuOpen);
+      if (device.getButtonState(BUTTON_M, BUTTON_PRESSED)) this->menuOpen = !(this->menuOpen);
     }
   }
   else {
-    if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) {
+    if (device.getButtonState(BUTTON_M, BUTTON_PRESSED)) {
       this->menuOpen = !this->menuOpen;
       this->secondCursor = 0;
+    }
+    else if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) {
+      this->UIcursor--;
+      if(this->UIcursor < 0) this->UIcursor = 6;
     }
     else if (device.getButtonState(BUTTON_B, BUTTON_PRESSED)) {
       this->UIcursor++;
@@ -165,7 +167,7 @@ void UI::drawMenubar() {
 
 
 void UI::drawTouch() {
-  if      (secondCursor == 0) {
+  if (secondCursor == 0) {
     if (character.state != STATE_STROKE && character.state != STATE_STROKE_HAPPY) {
       myATM0130.drawBlock_16px(character.x + 8, character.y - 16, icon[ICON_POINT1]);
     }
@@ -219,23 +221,38 @@ void UI::drawClock(int16_t x, int16_t y) {
   float Rad;
   float sinRad;
   float cosRad;
-  //盤
+  //盤を描く
   myATM0130.setColor(WHITE16);
   myATM0130.drawFillCircle(x, y, 13);
 
-  if (device.isTimeConfigured) {
-    myATM0130.setColor(BLACK16);
-  }
-  else {
-    if      (device.isWiFiConnected) myATM0130.setColor(GREEN16);
-    else if (device.tryWiFiConnect) myATM0130.setColor(YELLOW16);
-    else myATM0130.setColor(RED16);
-  }
+  if      (device.isTimeConfigured    ) myATM0130.setColor(BLACK16);
+  else if (device.tryTimeConfigure > 0
+          && device.isWiFiConnected   ) myATM0130.setColor(ORENGE16);
+  else if (device.isWiFiConnected     ) myATM0130.setColor(GREEN16);
+  else if (device.tryWiFiConnect      ) myATM0130.setColor(YELLOW16);
+  else                                  myATM0130.setColor(RED16);
+  
   myATM0130.drawCircle(x, y, 13);
   myATM0130.drawCircle(x, y, 12);
 
   device.getTime();
-  //長針
+
+  if(device.isDebugMode){
+    myATM0130.setColor(RED16);
+    myATM0130.putStr(0,1,
+      String("tWC:"+String(device.tryWiFiConnect)
+            +"iWC:"+String(device.isWiFiConnected)
+            +"tTC:"+String(device.tryTimeConfigure)
+            )
+    );
+    myATM0130.putStr(0,9,
+      String("tWN:"+String(device.trynumber)
+            +"iWF:"+String(device.isWiFiConnect_failed)
+            )
+    );
+  }
+
+  //長針 9pxの長さで5本直線を描く
   myATM0130.setColor(BLACK16);
   Rad = (360 * ((device.getMinute() % 60) / 60.0) - 90) / (180 / PI);
   sinRad = sin(Rad);
@@ -246,9 +263,8 @@ void UI::drawClock(int16_t x, int16_t y) {
   myATM0130.drawLine(x  , y - 1, x + cosRad * 9, y + sinRad * 9);
   myATM0130.drawLine(x  , y + 1, x + cosRad * 9, y + sinRad * 9);
 
-  //短針
+  //短針 5pxの長さで5本直線を描く
   myATM0130.setColor(RED16);
-  //Rad = (360 * ((device.getHour() % 12) / 12.0) - 90) / (180 / PI);
   Rad = (360 * ((( (device.getHour() % 12) * 5 + device.getMinute() / 12 ) % 60) / 60.0) - 90) / (180 / PI);
   sinRad = sin(Rad);
   cosRad = cos(Rad);
@@ -264,7 +280,6 @@ void UI::drawClock(int16_t x, int16_t y) {
   sinRad = sin(Rad);
   cosRad = cos(Rad);
   myATM0130.drawLine(x, y, x + cosRad * 11, y + sinRad * 11);
-
 }
 
 void UI::drawInfo() {
@@ -279,6 +294,7 @@ void UI::drawInfo() {
 
   myATM0130.drawLine(68, 84, 68, 119);
 
+  //状態表示
   myATM0130.drawBlock_32px(1, 86, character_image[0]);
   myATM0130.drawBlock_16px(34, 86, icon[ICON_GRAYMUSICNOTE]);
   myATM0130.drawBlock_16px(34, 86, icon[ICON_MUSICNOTE], (uint8_t)(16 - 16.0 * (((double)character.happiness) / 100.0)), 0, 0, 0);
@@ -287,18 +303,22 @@ void UI::drawInfo() {
   myATM0130.drawBlock_16px(52, 94, icon[ICON_GRAYSLEEP]);
   myATM0130.drawBlock_16px(52, 94, icon[ICON_SLEEP], (uint8_t)(16 - 16.0 * (((double)character.sleepiness) / 100.0)), 0, 0, 0);
 
-  //冷蔵庫
+  //冷蔵庫の中身
   myATM0130.drawBlock(70, 92, 32, 16, 16, 24, imagemap);
-
+  for(int16_t a=0;a<4;a++){
+    if(character.storage[a] == FOOD_IMAGENUM) continue;
+    myATM0130.drawBlock_16px(87 + a%2*16, 86 + a/2*16, foods[character.storage[a]]);
+  }
 
   //デバッグ用
-  myATM0130.setColor(BLUE16);
-  myATM0130.putStr(0,  1, String("LT:" + String(character.loopTime) + " S:" + String(character.state) + " AN:" + String(character.animationNum)));
-  myATM0130.setColor(GREEN16);
-  myATM0130.putStr(0, 9, String("HP:" + String(character.life)+ " LOVE:") + String(character.love));
-  myATM0130.setColor(RED16);
-  myATM0130.putStr(0, 17, String("Fav:" + String(character.favorability)+ " LOVE:") + String(character.love));
-  
+  if(device.isDebugMode){
+    myATM0130.setColor(BLUE16);
+    myATM0130.putStr(0, 1, String("LT:" + String(character.loopTime) + " S:" + String(character.state) + " AN:" + String(character.animationNum)));
+    myATM0130.setColor(MAGENTA16);
+    myATM0130.putStr(0, 9, String("HP:" + String(character.life)));
+    myATM0130.setColor(RED16);
+    myATM0130.putStr(0, 17, String("Fav:" + String(character.favorability)+ " LOVE:") + String(character.love));
+  }  
 }
 
 void UI::drawSave() {
@@ -306,12 +326,12 @@ void UI::drawSave() {
 }
 
 void UI::drawSetting() {
-  if (!device.isServerStarted) {
+  if (device.isServerStarted == false) {
     device.serverBegin();
   }
   myATM0130.clearScreen(BLACK16);
   myATM0130.setColor(GREEN16);
-  myATM0130.putStr(0, 1, "Please Access to\0");
+  myATM0130.putStr(0, 1, "Access to\0");
   myATM0130.putStr(0, 9, "SSID:\0");
   myATM0130.putStr(0, 17, device.getServerssid());
   myATM0130.putStr(0, 25, "PASS:\0");
@@ -331,6 +351,16 @@ void UI::draw() {
     else if (this->UIcursor == ICON_SAVE   ) this->drawSave();
     else if (this->UIcursor == ICON_POWER  ) ;
     else if (this->UIcursor == ICON_SETTING) this->drawSetting();
+    else{
+      myATM0130.setColor(WHITE16);
+      myATM0130.drawFillRectangle(1, 116, 119, 119);
+      myATM0130.drawLine(0, 116, 0, 120);
+      myATM0130.drawLine(119, 116, 119, 120);
+      myATM0130.setColor(BLACK16);
+      myATM0130.drawLine(1, 115, 118, 115);
+      myATM0130.drawDot(0, 116);
+      myATM0130.drawDot(119, 116);
+    }
   }
   else {
     if (device.isServerStarted) {

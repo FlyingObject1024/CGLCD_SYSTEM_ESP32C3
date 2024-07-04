@@ -7,6 +7,7 @@
    ->randomをコメントアウトすると駆動が2,500,000ms以上続いた。
    ->疑似乱数の代わりにmicros()を使用して乱数生成を行う。
    ->駆動50,000,000ms続行
+
 */
 
 //2022/11/15 2:00 電源耐久試験開始 sleepなし、単三乾電池2本(3.0V)による試験 wifi接続は時間受信最初の1回のみ
@@ -50,16 +51,23 @@ void frame_checker() {
   }
   buttonChecker();
   //animationChecker();
+  
   if (device.tryWiFiConnect) {
     device.WiFiConnectCheck();
   }
-  else if(device.tryWiFiConnect==false && device.isTimeConfigured==false){
+  else if(device.tryWiFiConnect==false 
+       && device.isTimeConfigured==false 
+       && device.isWiFiConnect_failed==false 
+       && device.isWiFiConnected==false
+       ){
     device.WiFiBegin();
   }
-  else if(device.isWiFiConnected && device.isTimeConfigured==false){
-    device.setTime();
+
+  if(device.isServerStarted==false){
+    if(device.isTimeConfigured || device.isWiFiConnect_failed){
+      device.WiFiEnd();
+    }
   }
-  if (device.isTimeConfigured) device.WiFiEnd();
 }
 
 void buttonChecker() {
@@ -70,21 +78,32 @@ void buttonChecker() {
     button_reader |= (1 << BUTTON_A);
     button_reader |= (1 << BUTTON_B);
   }
-  else if(analog_signal < 3000){
-    button_reader |= (1 << BUTTON_A);    
+  else if(analog_signal < 3000){ 
+    button_reader |= (1 << BUTTON_B);
   }
   else if(analog_signal < 4000){
-    button_reader |= (1 << BUTTON_B);
+    button_reader |= (1 << BUTTON_A);
+  }
+
+  if(!digitalRead(WAKEUP_BUTTON_PIN)){
+    button_reader |= (1 << BUTTON_M);
   }
   
   Serial.print("ANALOG BUTTON: ");
   Serial.println(analog_signal);
+  Serial.print("WAKEUP BUTTON: ");
+  Serial.println(!digitalRead(WAKEUP_BUTTON_PIN));
+
+  
   device.setButtonState(button_reader);
 }
 
 void setup() {
   Serial.begin(115200);
+  digitalWrite(DISPLAY_POWER_PIN, LOW);
+  if(device.isDebugMode) delay(5000);
   Serial.println("\nSYSTEM START");
+  digitalWrite(DISPLAY_POWER_PIN, HIGH);
 
   myATM0130.begin();
   myATM0130.clearScreen(BLACK16);
@@ -100,8 +119,9 @@ void loop() {
   while(true){
     frame_checker();
 
-    if (false) {
-      
+    if (device.isServerStarted) {
+      device.serverWaitAccess();
+      if (device.getButtonState(BUTTON_A, BUTTON_PRESSED)) device.serverEnd();
     }
     else {
       //全てgameobjects内でプログラムを実行、background, character, userinterfaceが既に入っている

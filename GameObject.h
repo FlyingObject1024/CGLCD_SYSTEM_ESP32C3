@@ -14,6 +14,7 @@ enum{
   STATE_DIE,
   STATE_CALL,
   STATE_EAT,
+  STATE_STORAGE_EAT,
 };
 
 class GameObject{
@@ -58,18 +59,20 @@ class Character : public GameObject{
     void moveAnimation();
     
   public:
-    int8_t life;//体力 0になると倒れる(不可逆)
-    int8_t stomach;//満腹度
+    int8_t life;    //体力 0になると倒れる
+    int8_t stomach; //満腹度
     
-    int8_t sleepiness;//眠気(低いと眠い)    
-    int8_t happiness;//楽しさ
-    int8_t favorability;//一時好感度
+    int8_t sleepiness;   //眠気(低いと眠い)    
+    int8_t happiness;    //楽しさ
+    int8_t favorability; //一時好感度
     //happiness = 100*favorability/(time+favorability)
     int8_t love;//真の好感度
-    
-    uint8_t loopTime;//パラメータ変動時間0になったら変動
-    
 
+    //0になったらパラメータ変動判定が走る
+    uint8_t loopTime;
+
+    uint8_t storage[4] = {FOOD_RICEBALL, FOOD_IMAGENUM, FOOD_IMAGENUM, FOOD_IMAGENUM};
+    
     Character();
     void eat(uint8_t foodType);
     void stock(uint8_t foodType);

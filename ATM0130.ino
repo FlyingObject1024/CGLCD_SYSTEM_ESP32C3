@@ -250,7 +250,8 @@ void ATM0130::drawBlock_16px(int16_t x, int16_t y, const uint16_t (&block)[16][1
   else if (y + endj > HEIGHT) endj = HEIGHT;
 
   for (uint8_t j = firstj; j < endj; j++) {
-    for (uint8_t i = firsti; i < endi; i++) {
+    for (int8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       else backScreen[y + j][x + i] = pgm_read_word_near(&(block[j][i]));
     }
@@ -259,8 +260,8 @@ void ATM0130::drawBlock_16px(int16_t x, int16_t y, const uint16_t (&block)[16][1
 }
 
 void ATM0130::drawBlock_16px(int16_t x, int16_t y, const uint16_t (&block)[16][16], uint8_t cut_top, uint8_t cut_bottom, uint8_t cut_left, uint8_t cut_right) {
-  volatile uint8_t firsti = cut_left, endi = 16 - cut_right;
-  volatile uint8_t firstj = cut_top , endj = 16 - cut_bottom;  //firsti,firstjを経由しないと下の二重ループがちゃんと機能しない。
+  uint8_t firsti = cut_left, endi = 16 - cut_right;
+  uint8_t firstj = cut_top , endj = 16 - cut_bottom;  //firsti,firstjを経由しないと下の二重ループがちゃんと機能しない。
 
   if (x < 0) firsti = abs(x);
   else if (x + endi > WIDTH) endi = WIDTH;
@@ -269,6 +270,7 @@ void ATM0130::drawBlock_16px(int16_t x, int16_t y, const uint16_t (&block)[16][1
 
   for (uint8_t j = firstj; j < endj; j++) {
     for (uint8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       backScreen[y + j][x + i] = pgm_read_word_near(&(block[j][i]));
     }
@@ -286,6 +288,7 @@ void ATM0130::drawBlock_32px(int16_t x, int16_t y, const uint16_t (&block)[32][3
 
   for (uint8_t j = firstj; j < endj; j++) {
     for (uint8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       backScreen[y + j][x + i] = pgm_read_word_near(&(block[j][i]));
     }
@@ -305,6 +308,7 @@ void ATM0130::drawBlock(int16_t x, int16_t y, uint8_t imagex, uint8_t imagey, ui
 
   for (uint16_t j = firstj; j < endj; j++) {
     for (uint16_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[imagey + j][imagex + i])) == SKELETON || x+i < 0 || x+i >= WIDTH) continue;
       backScreen[y + j][x + i] = pgm_read_word_near(&(block[imagey + j][imagex + i]));
     }
@@ -322,6 +326,7 @@ void ATM0130::drawFlipBlock_4px(int16_t x, int16_t y, const uint16_t (&block)[4]
 
   for (uint8_t j = firstj; j < endj; j++) {
     for (uint8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       backScreen[y + j][x + endi - 1 - i] = pgm_read_word_near(&(block[j][i]));
     }
@@ -339,6 +344,7 @@ void ATM0130::drawFlipBlock_8px(int16_t x, int16_t y, const uint16_t (&block)[8]
 
   for (uint8_t j = firstj; j < endj; j++) {
     for (uint8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       backScreen[y + j][x + endi - 1 - i] = pgm_read_word_near(&(block[j][i]));
     }
@@ -356,6 +362,7 @@ void ATM0130::drawFlipBlock_16px(int16_t x, int16_t y, const uint16_t (&block)[1
 
   for (uint8_t j = firstj; j < endj; j++) {
     for (uint8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       backScreen[y + j][x + endi - 1 - i] = pgm_read_word_near(&(block[j][i]));
     }
@@ -373,6 +380,7 @@ void ATM0130::drawFlipBlock_32px(int16_t x, int16_t y, const uint16_t (&block)[3
 
   for (uint8_t j = firstj; j < endj; j++) {
     for (uint8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       backScreen[y + j][x + endi - 1 - i] = pgm_read_word_near(&(block[j][i]));
     }
@@ -392,6 +400,7 @@ void ATM0130::drawFlipBlock(int16_t x, int16_t y, uint8_t imagex, uint8_t imagey
 
   for (uint16_t j = firstj; j < endj; j++) {
     for (uint16_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[imagey + j][imagex + i])) == SKELETON) continue;
       backScreen[y + j][x + endi - 1 - i] = pgm_read_word_near(&(block[imagey + j][imagex + i]));
     }
@@ -409,6 +418,7 @@ void ATM0130::drawRotateBlock_4px(int16_t x, int16_t y, const uint16_t (&block)[
 
   for (uint8_t j = firstj; j < endj; j++) {
     for (uint8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       backScreen[y + i][x + j] = pgm_read_word_near(&(block[j][i]));
     }
@@ -426,6 +436,7 @@ void ATM0130::drawRotateFlipBlock_4px(int16_t x, int16_t y, const uint16_t (&blo
 
   for (uint8_t j = firstj; j < endj; j++) {
     for (uint8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       backScreen[y + i][x + endj - 1 - j] = pgm_read_word_near(&(block[j][i]));
     }
@@ -443,6 +454,7 @@ void ATM0130::drawRotateBlock_16px(int16_t x, int16_t y, const uint16_t (&block)
 
   for (uint8_t j = firstj; j < endj; j++) {
     for (uint8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       backScreen[y + i][x + j] = pgm_read_word_near(&(block[j][i]));
     }
@@ -460,6 +472,7 @@ void ATM0130::drawRotateFlipBlock_16px(int16_t x, int16_t y, const uint16_t (&bl
 
   for (uint8_t j = firstj; j < endj; j++) {
     for (uint8_t i = firsti; i < endi; i++) {
+      if(i >= HEIGHT || j >= WIDTH) continue;
       if (pgm_read_word_near(&(block[j][i])) == SKELETON) continue;
       backScreen[y + i][x + endj - 1 - j] = pgm_read_word_near(&(block[j][i]));
     }

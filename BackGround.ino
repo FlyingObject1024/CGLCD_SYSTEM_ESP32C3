@@ -101,6 +101,11 @@ void BackGround::drawOutSide() {
   myATM0130.setColor(0x5e9d);
   myATM0130.drawFillRectangle(57, 45, 59, 53);
   myATM0130.drawFillRectangle(61, 45, 63, 53);
+  myATM0130.setColor(WHITE16);
+  for(uint8_t i=0;i<15;i++){     
+    myATM0130.drawDot(device.LFSR()%25+33, device.LFSR()%13+40);
+    myATM0130.drawDot(device.LFSR()%25+61, device.LFSR()%13+40);
+  }
 
 }
 
@@ -124,7 +129,6 @@ void BackGround::draw() {
   myATM0130.drawRectangle(59, 16, 60, 54);
   myATM0130.drawLine(16, 55, 0, 96);
   myATM0130.drawLine(103, 55, 119, 96);
-
   
   //植物
   myATM0130.drawBlock(94, 34, 96 + character.love*8,  0, 8, 24, imagemap);
@@ -137,4 +141,5 @@ void BackGround::draw() {
     myATM0130.drawBlock(70, 55,  0,  0, 32, 16, imagemap);
   //冷蔵庫
   myATM0130.drawBlock( 6, 72, 32, 16, 16, 24, imagemap);
+  //myATM0130.drawBlock(12, 82, 38, 41, 14, 15, imagemap);
 }
