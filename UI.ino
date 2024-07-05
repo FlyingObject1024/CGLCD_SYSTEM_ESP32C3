@@ -331,15 +331,15 @@ void UI::drawSetting() {
   }
   myATM0130.clearScreen(BLACK16);
   myATM0130.setColor(GREEN16);
-  myATM0130.putStr(0, 1, "Access to\0");
+  myATM0130.putStr(0, 1, "Please access to\0");
   myATM0130.putStr(0, 9, "SSID:\0");
   myATM0130.putStr(0, 17, device.getServerssid());
   myATM0130.putStr(0, 25, "PASS:\0");
   myATM0130.putStr(0, 33, device.getServerpass());
   myATM0130.setColor(WHITE16);
-  myATM0130.putStr(0, 49, "and search URL:\nhttp://192.168.4.1/\0");
+  myATM0130.putStr(0, 49, "And search in\nyour browser\nURL:\nhttp://192.168.4.1/\0");
   myATM0130.setColor(RED16);
-  myATM0130.putStr(0, 73, "EXIT:\n PRESS LEFT BUTTON\0");
+  myATM0130.putStr(0, 97, "EXIT:\n PRESS LEFT BUTTON\0");
   this->menuOpen = false;
 }
 

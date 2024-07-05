@@ -65,8 +65,8 @@ class Device{
     float sunsetTime = 0;
  
     uint8_t ssid_num;
-    String ssid_rssi_str[30];
-    String ssid_str[30];
+    String ssid_rssi_str[256];
+    String ssid_str[256];
     String Selected_SSID_str = " ";
     String Sel_SSID_PASS_str = " ";
  
@@ -143,13 +143,20 @@ class Device{
     );
     String html_tag1 = (
        String("<!DOCTYPE html>\r\n<html>\r\n<head>\r\n")
-      +String("<meta name='viewport' content='initial-scale=1.5'>\r\n")
+      +String("<meta name='viewport' content='initial-scale=1.5' charset='UTF-8'>\r\n")
       +String("</head>\r\n\r\n")
       +String("<body style='background:#000; color:#fff; font-size:100%;'>\r\n")
       +String("ESP32<br>\r\n")
       +String("Access Point Selector<br>\r\n")
     );
-    String html_tag2 = "\r\n</body>\r\n</html>\r\n\r\n";
+    String html_tag2 = (
+      String("この通信は暗号化されていません。留意の上で利用してください。<br>\r\n")
+      +String("接続したいWi-Fiアクセスポイントを選択し、パスを入力した後 STA Connection GO!を押してください。<br>\r\n")
+      +String("アクセスポイントを複数登録(最大3)する場合は同じ設定作業を行ってください。<br><br>\r\n")
+      +String("ネットワーク接続は、NTPによる時刻取得のみに利用されます\r\n")
+      +String("バグ報告: @flyingobject1024 もしくは @yakoshin1028<br>\r\n")
+      +String("\r\n</body>\r\n</html>\r\n\r\n")
+    );
 };
 
 #endif

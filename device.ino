@@ -14,16 +14,8 @@ Device::Device() {
   this->pass[1] = String("");
   this->ssid[2] = String("");
   this->pass[2] = String("");
-  
-  /*
-  this->ssid[0] = String("xg100n-3f3275-1");
-  this->pass[0] = String("117fd2a99b576");
-  this->ssid[1] = String("PXL_1028");
-  this->pass[1] = String("kodaidesu");
-  this->ssid[2] = String("PXL_1028");
-  this->pass[2] = String("kodaidesu");
-  */
-  //readSettings();
+
+  readSettings();
 
   this->isServerStarted = false;
   
@@ -150,8 +142,14 @@ void Device::client_connect(){
 
     req_str = "";
     while (client.connected()){
+      
+      myATM0130.clearScreen(BLACK16);
       myATM0130.setColor(GREEN16);
-      myATM0130.putStr(0, 89, "CONNECTED");
+      myATM0130.putStr(0, 1, "Device CONNECTED!");      
+      myATM0130.setColor(WHITE16);
+      myATM0130.putStr(0, 49, "And search in\nyour browserURL:\nhttp://192.168.4.1/\0");
+      myATM0130.setColor(RED16);
+      myATM0130.putStr(0, 97, "EXIT:\n PRESS LEFT BUTTON\0");
       myATM0130.updateScreen();
       device.getButtonState(BUTTON_A, BUTTON_PRESSED);
       while(client.available()){
@@ -250,20 +248,51 @@ void Device::client_GET_requests(){
  
     if(getTXT_pass > 0){
       Sel_SSID_PASS_str = req_str.substring(getTXT_pass + 6, req_str.indexOf("&ssid_sel_submit"));
-      ssid[0] = Sel_SSID_PASS_str;
     }
     if(getTXT_select > 0){
       Selected_SSID_str = req_str.substring(getTXT_select + 12, req_str.indexOf("&pass1"));
-      pass[0] = Sel_SSID_PASS_str;
     }
     if(getTXT_close < 0){
       Serial.printf("Selected_SSID_str = %s\r\n", Selected_SSID_str.c_str());
       Serial.printf("Sel_SSID_PASS_str = %s\r\n", Sel_SSID_PASS_str.c_str());
+
+
+      this->ssid[2] = this->ssid[1];
+      this->pass[2] = this->pass[1];
+      this->ssid[1] = this->ssid[0];
+      this->pass[1] = this->pass[0];
+      this->ssid[0] = Selected_SSID_str.c_str();
+      this->pass[0] = Sel_SSID_PASS_str.c_str();
+      
  
       while(client.available()){
         char c = client.read();
         Serial.write(c);
       }
+
+      
+      myATM0130.clearScreen(BLACK16);
+      myATM0130.setColor(GREEN16);
+      myATM0130.putStr(0, 1, "UPDATED!");
+      
+      myATM0130.setColor(WHITE16);
+      myATM0130.putStr(0, 9, "SSID 1:");
+      myATM0130.putStr(0, 17, this->ssid[0]);
+      myATM0130.putStr(0, 25, "SSID 2:");
+      myATM0130.putStr(0, 33, this->ssid[1]);
+      myATM0130.putStr(0, 41, "SSID 3:");
+      myATM0130.putStr(0, 49, this->ssid[2]);
+      
+      myATM0130.setColor(RED16);
+      myATM0130.putStr(0, 97, "EXIT:\n PRESS LEFT BUTTON\0");
+      myATM0130.updateScreen();
+
+      writeSettings();
+
+      this->tryWiFiConnect = false; 
+      this->isTimeConfigured = false; 
+      this->isWiFiConnect_failed = false; 
+      this->isWiFiConnected = false;
  
       Serial.println("-------------- SUBMIT Request Receive Finish");
       String str_w = Selected_SSID_str + "\r\n" + Sel_SSID_PASS_str;
@@ -510,23 +539,23 @@ bool Device::readSettings(){
   if(f == NULL) return false;
 
   area_str = f.readStringUntil('\n');
-  ssid[0] = f.readStringUntil('\n');
-  pass[0] = f.readStringUntil('\n');
-  ssid[1] = f.readStringUntil('\n');
-  pass[1] = f.readStringUntil('\n');
-  ssid[2] = f.readStringUntil('\n');
-  pass[2] = f.readStringUntil('\n');
+  this->ssid[0] = f.readStringUntil('\n');
+  this->pass[0] = f.readStringUntil('\n');
+  this->ssid[1] = f.readStringUntil('\n');
+  this->pass[1] = f.readStringUntil('\n');
+  this->ssid[2] = f.readStringUntil('\n');
+  this->pass[2] = f.readStringUntil('\n');
   
   f.close();
   SPIFFS.end();
 
   this->area_num = area_str.toInt();
-  ssid[0].trim();
-  pass[0].trim();
-  ssid[1].trim();
-  pass[1].trim();
-  ssid[2].trim();
-  pass[2].trim();
+  this->ssid[0].trim();
+  this->pass[0].trim();
+  this->ssid[1].trim();
+  this->pass[1].trim();
+  this->ssid[2].trim();
+  this->pass[2].trim();
   
   return true;
 }
@@ -536,30 +565,12 @@ bool Device::writeSettings(){
   File f = SPIFFS.open("/setting.txt","w");
   if(f == NULL) return false;
   f.println(this->area_num);
-  if(ssid[0] != ""){
-    f.println(this->ssid[0]);
-    f.println(this->pass[0]);    
-  }
-  else{
-    f.println("");
-    f.println("");
-  }
-  if(ssid[1] != ""){
-    f.println(this->ssid[1]);
-    f.println(this->pass[1]);    
-  }
-  else{
-    f.println("");
-    f.println("");
-  }
-  if(ssid[2] != ""){
-    f.println(this->ssid[2]);
-    f.println(this->pass[2]);    
-  }
-  else{
-    f.println("");
-    f.println("");
-  }
+  f.println(this->ssid[0]);
+  f.println(this->pass[0]);
+  f.println(this->ssid[1]);
+  f.println(this->pass[1]);
+  f.println(this->ssid[2]);
+  f.println(this->pass[2]);
   f.close();
   SPIFFS.end();
   
